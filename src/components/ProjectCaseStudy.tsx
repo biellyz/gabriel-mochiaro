@@ -58,7 +58,7 @@ export function ProjectCaseStudy({
     <div className="relative min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-[var(--text-primary)]">
       {/* Floating Soft Top Bar */}
       <header className="sticky top-0 z-40 px-4 pt-3 sm:px-6">
-        <div className="mx-auto flex h-15 max-w-[1160px] items-center justify-between gap-3 rounded-full border border-[var(--border-panel)] bg-[var(--bg-panel)]/90 px-3 shadow-[var(--shadow-soft)] backdrop-blur-xl sm:px-4">
+        <div className="mx-auto flex h-15 max-w-[1160px] items-center justify-between gap-3 rounded-full border border-[var(--border-panel)] bg-[#0B0F19]/95 px-3 shadow-[var(--shadow-soft)] sm:px-4 lg:bg-[var(--bg-panel)]/90 lg:backdrop-blur-xl">
           <Link
             href="/#projetos"
             className="group inline-flex items-center gap-2 rounded-full bg-[var(--bg-panel-alt)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:text-[var(--accent)] sm:text-sm"

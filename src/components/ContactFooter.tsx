@@ -117,18 +117,18 @@ export function ContactFooter() {
               "linear-gradient(135deg, #1E1A36 0%, #171B30 52%, #131A29 100%)",
           }}
         >
-          {/* Soft Atmospheric Aurora Accents */}
+          {/* Soft Atmospheric Aurora Accents (Desktop GPU blur; Mobile uses clean gradient background) */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-24 -right-12 h-72 w-72 rounded-full bg-[#C4B5FD]/18 blur-3xl"
+            className="pointer-events-none absolute -top-24 -right-12 hidden h-72 w-72 rounded-full bg-[#C4B5FD]/18 blur-3xl lg:block"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-28 -left-12 h-72 w-72 rounded-full bg-[#60A5FA]/15 blur-3xl"
+            className="pointer-events-none absolute -bottom-28 -left-12 hidden h-72 w-72 rounded-full bg-[#60A5FA]/15 blur-3xl lg:block"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute right-1/3 bottom-0 h-44 w-44 rounded-full bg-[#6EE7B7]/10 blur-3xl"
+            className="pointer-events-none absolute right-1/3 bottom-0 hidden h-44 w-44 rounded-full bg-[#6EE7B7]/10 blur-3xl lg:block"
           />
 
           <motion.div
@@ -169,7 +169,7 @@ export function ContactFooter() {
                     rel={isExternal ? "noopener noreferrer" : undefined}
                     whileHover={{ y: -3, scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`group flex min-h-[74px] items-center justify-between gap-3 rounded-3xl border border-white/10 bg-[#121524]/75 p-4 text-white backdrop-blur-md transition-all duration-300 hover:bg-[#191D32]/90 ${channel.hoverBorder}`}
+                    className={`group flex min-h-[74px] items-center justify-between gap-3 rounded-3xl border border-white/10 bg-[#121524]/92 p-4 text-white transition-colors duration-300 hover:bg-[#191D32]/95 lg:bg-[#121524]/75 lg:backdrop-blur-md ${channel.hoverBorder}`}
                   >
                     <div className="flex min-w-0 items-center gap-3.5">
                       <span

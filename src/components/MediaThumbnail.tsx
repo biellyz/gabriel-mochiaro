@@ -72,6 +72,7 @@ export function MediaThumbnail({
       src={resolvedSrc}
       alt={alt}
       loading="lazy"
+      decoding="async"
       referrerPolicy="no-referrer"
       onError={handleFallback}
       onLoad={(event) => {

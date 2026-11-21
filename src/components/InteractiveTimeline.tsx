@@ -165,6 +165,7 @@ function AutoplayPreviewStage({
           <iframe
             ref={iframeRef}
             key={`preview-embed-${project.id}`}
+            loading="lazy"
             src={getEmbedVideoUrl(project.videoUrl, {
               autoplay: true,
               muted: true,
@@ -220,7 +221,7 @@ function AutoplayPreviewStage({
       )}
 
       {/* Top-Left Category / Format Pill */}
-      <span className="pointer-events-none absolute top-2.5 left-2.5 z-20 inline-flex items-center gap-1.5 rounded-full bg-[#0D0F17]/82 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-md">
+      <span className="pointer-events-none absolute top-2.5 left-2.5 z-20 inline-flex items-center gap-1.5 rounded-full bg-[#0D0F17]/90 px-2.5 py-1 text-[10px] font-semibold text-white lg:bg-[#0D0F17]/82 lg:backdrop-blur-sm">
         <span
           className="h-1.5 w-1.5 rounded-full"
           style={{ backgroundColor: pastel.dot }}
@@ -245,7 +246,7 @@ function AutoplayPreviewStage({
               muted ? "Ativar som do preview" : "Silenciar som do preview"
             }
             title={muted ? "Ativar som" : "Silenciar"}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-[#0D0F17]/82 text-white backdrop-blur-md transition-colors hover:border-[#6E94FF] hover:bg-[#161B2B]"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-[#0D0F17]/90 text-white transition-colors hover:border-[#6E94FF] hover:bg-[#161B2B] lg:bg-[#0D0F17]/82 lg:backdrop-blur-sm"
           >
             {muted ? (
               <VolumeX className="h-3.5 w-3.5 text-[#CBD3E8]" />
@@ -263,7 +264,7 @@ function AutoplayPreviewStage({
           }}
           aria-label={`Abrir ${project.title} em destaque`}
           title="Abrir vídeo em destaque"
-          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-[#0D0F17]/82 text-white backdrop-blur-md transition-colors hover:border-[#6E94FF] hover:bg-[#161B2B]"
+          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-[#0D0F17]/90 text-white transition-colors hover:border-[#6E94FF] hover:bg-[#161B2B] lg:bg-[#0D0F17]/82 lg:backdrop-blur-sm"
         >
           <Maximize2 className="h-3.5 w-3.5" />
         </button>
@@ -288,12 +289,16 @@ export function InteractiveTimeline({
   const [isDesktopViewport, setIsDesktopViewport] = useState<boolean | null>(
     null
   );
+  const [isInViewport, setIsInViewport] = useState(true);
   const [previewMuted, setPreviewMuted] = useState(true);
+  const sectionRef = useRef<HTMLElement>(null);
   const desktopRailRef = useRef<HTMLDivElement>(null);
   const mobileRailRef = useRef<HTMLDivElement>(null);
   const desktopClipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const mobileClipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const hasMountedRef = useRef(false);
+  const scrubRafRef = useRef<number | null>(null);
+  const pendingScrubIdxRef = useRef<number | null>(null);
 
   // Garante que apenas UM player de preview (desktop OU mobile) fique montado por vez
   useEffect(() => {
@@ -302,6 +307,33 @@ export function InteractiveTimeline({
     updateViewport();
     mediaQuery.addEventListener("change", updateViewport);
     return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  // Pausa/desmonta o iframe de autoplay e animações contínuas quando a Timeline sai da tela
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          setIsInViewport(entry.isIntersecting);
+        }
+      },
+      { threshold: 0.05, rootMargin: "120px 0px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scrubRafRef.current !== null) {
+        window.cancelAnimationFrame(scrubRafRef.current);
+      }
+    };
   }, []);
 
   const activeIndex = Math.max(
@@ -361,10 +393,16 @@ export function InteractiveTimeline({
 
   const handleScrub = (rawValue: number) => {
     const clamped = Math.max(0, Math.min(projects.length - 1, rawValue));
-    if (clamped !== activeIndex) {
-      playTimelineTick();
-      onSelectProject(projects[clamped]);
-    }
+    pendingScrubIdxRef.current = clamped;
+    if (scrubRafRef.current !== null) return;
+    scrubRafRef.current = window.requestAnimationFrame(() => {
+      scrubRafRef.current = null;
+      const nextIdx = pendingScrubIdxRef.current;
+      if (nextIdx !== null && nextIdx !== activeIndex && projects[nextIdx]) {
+        playTimelineTick();
+        onSelectProject(projects[nextIdx]);
+      }
+    });
   };
 
   const handleSelectClip = (clip: Project) => {
@@ -373,7 +411,10 @@ export function InteractiveTimeline({
   };
 
   return (
-    <section aria-label="Timeline interativa e preview de vídeos">
+    <section
+      ref={sectionRef}
+      aria-label="Timeline interativa e preview de vídeos"
+    >
       {/* =================================================================
           MOBILE & FOLDABLE (< 1024px) — CAPCUT-INSPIRED SOFT STUDIO CARD
           - Tela externa 5,36" (< md): Preview compacto -> Controles -> Timeline
@@ -415,7 +456,7 @@ export function InteractiveTimeline({
                   project={activeProject}
                   pastel={activePastel}
                   trackFallback={activeTrack.fallbackGradient}
-                  shouldMountPlayer={isDesktopViewport === false}
+                  shouldMountPlayer={isInViewport && isDesktopViewport === false}
                   muted={previewMuted}
                   compactMobile
                   onToggleMute={() => setPreviewMuted((prev) => !prev)}
@@ -481,22 +522,27 @@ export function InteractiveTimeline({
 
         {/* 3. CapCut-Style Mobile Timeline Bed Directly Below (Tightly Paired Video + Audio) */}
         <div className="relative mt-4 overflow-hidden rounded-2xl border border-white/[0.07] bg-[#12151E] p-3 text-white">
-          {/* Top Thin Scrubber Track */}
+          {/* Top Thin Scrubber Track (Pure GPU scaleX + translateX) */}
           <div className="relative mb-2.5 flex h-5 items-center">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
               <motion.div
-                animate={{ width: `${playheadPercent}%` }}
+                animate={{ scaleX: Math.max(0.02, playheadPercent / 100) }}
                 transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                className="h-full rounded-full bg-gradient-to-r from-[#93C5FD] via-[#C4B5FD] to-[#6EE7B7]"
+                style={{ transformOrigin: "left center" }}
+                className="h-full w-full rounded-full bg-gradient-to-r from-[#93C5FD] via-[#C4B5FD] to-[#6EE7B7]"
               />
             </div>
-            <motion.span
+            <motion.div
               aria-hidden="true"
-              animate={{ left: `${playheadPercent}%` }}
+              animate={{ x: `${playheadPercent}%` }}
               transition={{ type: "spring", stiffness: 260, damping: 28 }}
-              style={{ backgroundColor: "var(--studio-accent)" }}
-              className="pointer-events-none absolute h-4 w-4 -translate-x-1/2 rounded-full border-2 border-white shadow-[0_0_10px_rgba(196,181,253,0.85)] transition-colors duration-400"
-            />
+              className="pointer-events-none absolute inset-0 flex items-center"
+            >
+              <span
+                style={{ backgroundColor: "var(--studio-accent)" }}
+                className="h-4 w-4 -translate-x-1/2 rounded-full border-2 border-white shadow-[0_0_10px_rgba(196,181,253,0.85)] transition-colors duration-400"
+              />
+            </motion.div>
             <input
               type="range"
               aria-label="Deslizar agulha da timeline mobile"
@@ -510,14 +556,16 @@ export function InteractiveTimeline({
           </div>
 
           {/* Tightly Stacked Video + Audio Tracks */}
-          <div className="relative space-y-2">
-            {/* Synchronized Vertical Playhead Line */}
+          <div className="relative space-y-2 overflow-hidden">
+            {/* Synchronized Vertical Playhead Line (Pure GPU translateX) */}
             <motion.div
               aria-hidden="true"
-              animate={{ left: `${playheadPercent}%` }}
+              animate={{ x: `${playheadPercent}%` }}
               transition={{ type: "spring", stiffness: 260, damping: 28 }}
-              className="pointer-events-none absolute inset-y-0 z-20 w-[2px] -translate-x-1/2 rounded-full bg-white/85 shadow-[0_0_10px_rgba(196,181,253,0.85)]"
-            />
+              className="pointer-events-none absolute inset-0 z-20"
+            >
+              <span className="block h-full w-[2px] -translate-x-1/2 rounded-full bg-white/85 shadow-[0_0_10px_rgba(196,181,253,0.85)]" />
+            </motion.div>
 
             {/* Mobile Video Track */}
             <div
@@ -585,16 +633,17 @@ export function InteractiveTimeline({
               })}
             </div>
 
-            {/* Mobile Aligned Audio Track (Equivalent Visual Weight) */}
+            {/* Mobile Aligned Audio Track (Zero Continuous Background Loop Overhead When Offscreen) */}
             <div className="relative flex h-[68px] items-center overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0D1018] px-3">
               <motion.div
                 aria-hidden="true"
-                animate={{ width: `${playheadPercent}%` }}
+                animate={{ scaleX: Math.max(0.02, playheadPercent / 100) }}
                 transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                className="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r from-[#93C5FD]/14 via-[#C4B5FD]/18 to-[#6EE7B7]/16"
+                style={{ transformOrigin: "left center" }}
+                className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#93C5FD]/14 via-[#C4B5FD]/18 to-[#6EE7B7]/16"
               />
 
-              <span className="pointer-events-none absolute top-1.5 left-2.5 z-10 inline-flex items-center gap-1 rounded-full bg-[#12151E]/85 px-2 py-0.5 text-[9px] font-medium text-[#A7F3D0]">
+              <span className="pointer-events-none absolute top-1.5 left-2.5 z-10 inline-flex items-center gap-1 rounded-full bg-[#12151E]/90 px-2 py-0.5 text-[9px] font-medium text-[#A7F3D0]">
                 <Music2 className="h-2.5 w-2.5" />
                 <span>Áudio</span>
               </span>
@@ -606,30 +655,14 @@ export function InteractiveTimeline({
                   const isBeforePlayhead = barPercent <= playheadPercent;
 
                   return (
-                    <motion.span
+                    <span
                       key={`m-wave-${idx}`}
-                      animate={
-                        isAudioSync
-                          ? { scaleY: [0.3, 1.15, 0.35, 0.95, 0.3] }
-                          : { scaleY: [0.74, 1, 0.78] }
-                      }
-                      transition={{
-                        duration: isAudioSync
-                          ? 0.5 + (idx % 4) * 0.06
-                          : 2 + (idx % 4) * 0.25,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: idx * 0.025,
-                      }}
-                      className={`flex-1 rounded-full ${
+                      className={`flex-1 rounded-full transition-opacity duration-200 ${
                         isBeforePlayhead || isAudioSync
                           ? "bg-gradient-to-t from-[#6EE7B7] via-[#93C5FD] to-[#C4B5FD] opacity-95"
                           : "bg-white/20 opacity-55"
                       }`}
-                      style={{
-                        height: `${Math.max(24, height)}%`,
-                        willChange: "transform",
-                      }}
+                      style={{ height: `${Math.max(24, height)}%` }}
                     />
                   );
                 })}
@@ -686,23 +719,28 @@ export function InteractiveTimeline({
 
           {/* Unified Track Bed (#12151E) — ZERO HOLE! Tightly Stacked Equal-Height Tracks */}
           <div className="mt-4 flex flex-1 flex-col justify-center overflow-hidden rounded-2xl border border-white/[0.07] bg-[#12151E] p-4 text-white">
-            {/* Sleek Integrated Playhead Rail at Top of Tracks */}
+            {/* Sleek Integrated Playhead Rail at Top of Tracks (Pure GPU scaleX + translateX) */}
             <div className="relative mb-3 flex h-6 items-center px-1">
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                 <motion.div
-                  animate={{ width: `${playheadPercent}%` }}
+                  animate={{ scaleX: Math.max(0.02, playheadPercent / 100) }}
                   transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                  className="h-full rounded-full bg-gradient-to-r from-[#93C5FD] via-[#C4B5FD] to-[#6EE7B7]"
+                  style={{ transformOrigin: "left center" }}
+                  className="h-full w-full rounded-full bg-gradient-to-r from-[#93C5FD] via-[#C4B5FD] to-[#6EE7B7]"
                 />
               </div>
 
-              <motion.span
+              <motion.div
                 aria-hidden="true"
-                animate={{ left: `${playheadPercent}%` }}
+                animate={{ x: `${playheadPercent}%` }}
                 transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                style={{ backgroundColor: "var(--studio-accent)" }}
-                className="pointer-events-none absolute z-20 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-white shadow-[0_0_14px_rgba(196,181,253,0.9)] transition-colors duration-400"
-              />
+                className="pointer-events-none absolute inset-0 z-20 flex items-center"
+              >
+                <span
+                  style={{ backgroundColor: "var(--studio-accent)" }}
+                  className="h-4 w-4 -translate-x-1/2 rounded-full border-2 border-white shadow-[0_0_14px_rgba(196,181,253,0.9)] transition-colors duration-400"
+                />
+              </motion.div>
 
               <input
                 type="range"
@@ -717,14 +755,16 @@ export function InteractiveTimeline({
             </div>
 
             {/* Tightly Paired Video Track + Equal-Height Audio Track with Unified Vertical Needle */}
-            <div className="relative space-y-2.5">
-              {/* Synchronized Vertical Playhead Line Spanning BOTH Video & Audio Tracks */}
+            <div className="relative space-y-2.5 overflow-hidden">
+              {/* Synchronized Vertical Playhead Line Spanning BOTH Video & Audio Tracks (Pure GPU translateX) */}
               <motion.div
                 aria-hidden="true"
-                animate={{ left: `${playheadPercent}%` }}
+                animate={{ x: `${playheadPercent}%` }}
                 transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                className="pointer-events-none absolute inset-y-0 z-20 w-[2px] -translate-x-1/2 rounded-full bg-white/85 shadow-[0_0_14px_rgba(196,181,253,0.9)]"
-              />
+                className="pointer-events-none absolute inset-0 z-20"
+              >
+                <span className="block h-full w-[2px] -translate-x-1/2 rounded-full bg-white/85 shadow-[0_0_14px_rgba(196,181,253,0.9)]" />
+              </motion.div>
 
               {/* 1. VIDEO TRACK (h-[108px]) */}
               <div className="relative rounded-2xl border border-white/[0.06] bg-[#0D1018] p-2">
@@ -808,12 +848,13 @@ export function InteractiveTimeline({
 
               {/* 2. AUDIO TRACK — EQUIVALENT GENEROUS HEIGHT (h-[112px]) DIRECTLY BELOW VIDEO */}
               <div className="relative flex h-[112px] items-center overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0D1018] px-4">
-                {/* Soft Gradient Progress Tint */}
+                {/* Soft Gradient Progress Tint (Pure GPU scaleX) */}
                 <motion.div
                   aria-hidden="true"
-                  animate={{ width: `${playheadPercent}%` }}
+                  animate={{ scaleX: Math.max(0.02, playheadPercent / 100) }}
                   transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                  className="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r from-[#93C5FD]/14 via-[#C4B5FD]/18 to-[#6EE7B7]/16"
+                  style={{ transformOrigin: "left center" }}
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#93C5FD]/14 via-[#C4B5FD]/18 to-[#6EE7B7]/16"
                 />
 
                 {/* Subtle Horizontal Centerline */}
@@ -843,18 +884,24 @@ export function InteractiveTimeline({
                       <motion.span
                         key={`d-audio-${idx}`}
                         animate={
-                          isAudioSync
-                            ? { scaleY: [0.28, 1.12, 0.34, 0.96, 0.28] }
-                            : { scaleY: [0.72, 1, 0.78] }
+                          !isInViewport
+                            ? { scaleY: 0.85 }
+                            : isAudioSync
+                              ? { scaleY: [0.28, 1.12, 0.34, 0.96, 0.28] }
+                              : { scaleY: [0.72, 1, 0.78] }
                         }
-                        transition={{
-                          duration: isAudioSync
-                            ? 0.5 + (idx % 5) * 0.06
-                            : 2 + (idx % 5) * 0.25,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: idx * 0.025,
-                        }}
+                        transition={
+                          !isInViewport
+                            ? { duration: 0.2 }
+                            : {
+                                duration: isAudioSync
+                                  ? 0.5 + (idx % 5) * 0.06
+                                  : 2 + (idx % 5) * 0.25,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: idx * 0.025,
+                              }
+                        }
                         className={`flex-1 rounded-full transition-opacity duration-300 ${
                           isBeforePlayhead || isAudioSync
                             ? "bg-gradient-to-t from-[#6EE7B7] via-[#93C5FD] to-[#C4B5FD] opacity-95"
@@ -862,7 +909,6 @@ export function InteractiveTimeline({
                         }`}
                         style={{
                           height: `${Math.max(22, Math.round(height * 0.92))}%`,
-                          willChange: "transform",
                         }}
                       />
                     );
@@ -900,7 +946,7 @@ export function InteractiveTimeline({
                 project={activeProject}
                 pastel={activePastel}
                 trackFallback={activeTrack.fallbackGradient}
-                shouldMountPlayer={isDesktopViewport === true}
+                shouldMountPlayer={isInViewport && isDesktopViewport === true}
                 muted={previewMuted}
                 onToggleMute={() => setPreviewMuted((prev) => !prev)}
                 onExpand={() => onPreviewProject(activeProject)}

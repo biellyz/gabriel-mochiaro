@@ -79,7 +79,7 @@ export function MobileBottomDock({
       }}
       className="pointer-events-none fixed inset-x-0 z-40 max-w-full lg:hidden"
     >
-      <div className="pointer-events-auto mx-auto flex max-w-[430px] items-center justify-between gap-0.5 rounded-full border border-[var(--border-panel)] bg-[var(--bg-panel)]/92 p-1.5 shadow-[0_20px_48px_-12px_rgba(3,5,14,0.85)] backdrop-blur-xl sm:gap-1">
+      <div className="pointer-events-auto mx-auto flex max-w-[430px] items-center justify-between gap-0.5 rounded-full border border-[var(--border-panel)] bg-[#0B0F19]/95 p-1.5 shadow-[0_18px_36px_-12px_rgba(3,5,14,0.85)] sm:gap-1">
         {leftItems.map(renderNavItem)}
 
         {/* Center CapCut-Style Showreel Action Pill */}

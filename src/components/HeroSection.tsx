@@ -151,10 +151,10 @@ export function HeroSection({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: SMOOTH_EASE }}
-            className="inline-flex items-center gap-2 rounded-full border border-emerald-300/35 bg-[#0D0F17]/65 px-3.5 py-1.5 backdrop-blur-md sm:px-4"
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-300/35 bg-[#0D0F17]/88 px-3.5 py-1.5 sm:px-4 lg:bg-[#0D0F17]/65 lg:backdrop-blur-md"
           >
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="absolute hidden h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 lg:inline-flex" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
             <span className="text-[11px] font-semibold text-emerald-200 sm:text-xs">
@@ -218,7 +218,7 @@ export function HeroSection({
                   onExploreProjects();
                 }
               }}
-              className="group inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-white/28 bg-[#0D0F17]/55 px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0D0F17]/80 sm:w-auto"
+              className="group inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-white/28 bg-[#0D0F17]/85 px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#0D0F17]/95 sm:w-auto lg:bg-[#0D0F17]/55 lg:backdrop-blur-md"
             >
               <span>Ver Projetos</span>
               <ArrowDown className="h-4 w-4 text-[#BFDBFE] transition-transform duration-300 group-hover:translate-y-0.5" />

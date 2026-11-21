@@ -222,10 +222,10 @@ export function EditingToolsSection() {
                   : "border-[var(--border-panel)] hover:border-[#6E94FF]/45"
               }`}
             >
-              {/* Soft Pastel Glow */}
+              {/* Soft Pastel Glow (Desktop only — zero heavy blur repaint on mobile) */}
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -top-12 right-0 h-44 w-44 rounded-full blur-3xl transition-opacity duration-500"
+                className="pointer-events-none absolute -top-12 right-0 hidden h-44 w-44 rounded-full blur-3xl transition-opacity duration-500 lg:block"
                 style={{
                   backgroundColor: tool.accentHex,
                   opacity: isActive ? 0.2 : 0.05,

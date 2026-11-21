@@ -107,7 +107,7 @@ function SoftProjectCard({
         />
 
         {/* Delicate Format Pill */}
-        <span className="pointer-events-none absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-[#0D0F17]/78 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+        <span className="pointer-events-none absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-[#0D0F17]/88 px-2.5 py-1 text-[11px] font-medium text-white lg:bg-[#0D0F17]/78 lg:backdrop-blur-sm">
           <span
             className="h-2 w-2 rounded-full"
             style={{ backgroundColor: pastelDot }}

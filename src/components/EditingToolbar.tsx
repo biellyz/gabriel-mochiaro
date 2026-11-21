@@ -267,6 +267,16 @@ export function EditingToolbar({
 }: EditingToolbarProps) {
   const colorContainerRef = useRef<HTMLDivElement>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
+  const colorRafRef = useRef<number | null>(null);
+  const pendingColorPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (colorRafRef.current !== null) {
+        window.cancelAnimationFrame(colorRafRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!isColorOpen) return;
@@ -286,13 +296,25 @@ export function EditingToolbar({
       }
     };
 
-    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isColorOpen, onCloseColor]);
+
+  const scheduleColorPoint = (clientX: number, clientY: number) => {
+    pendingColorPointRef.current = { x: clientX, y: clientY };
+    if (colorRafRef.current !== null) return;
+    colorRafRef.current = window.requestAnimationFrame(() => {
+      colorRafRef.current = null;
+      const point = pendingColorPointRef.current;
+      if (point) {
+        updateColorFromPoint(point.x, point.y);
+      }
+    });
+  };
 
   const updateColorFromPoint = (clientX: number, clientY: number) => {
     const wheel = wheelRef.current;
@@ -349,14 +371,14 @@ export function EditingToolbar({
               background:
                 "radial-gradient(ellipse 75% 65% at 50% 35%, rgba(5, 7, 12, 0.12) 0%, rgba(5, 7, 12, 0.45) 100%)",
             }}
-            className="pointer-events-none fixed inset-0 z-30 backdrop-blur-[1.5px]"
+            className="pointer-events-none fixed inset-0 z-30 lg:backdrop-blur-[1.5px]"
           />
         )}
       </AnimatePresence>
 
       <div
         ref={colorContainerRef}
-        className="relative z-40 inline-flex max-w-full items-center gap-0.5 rounded-full border border-[var(--border-panel)] bg-[var(--bg-panel)]/90 p-1 shadow-[0_18px_40px_-18px_rgba(4,6,18,0.85)] backdrop-blur-xl sm:gap-1.5 sm:p-1.5"
+        className="relative z-40 inline-flex max-w-full items-center gap-0.5 rounded-full border border-[var(--border-panel)] bg-[#0B0F19]/95 p-1 shadow-[0_18px_40px_-18px_rgba(4,6,18,0.85)] sm:gap-1.5 sm:p-1.5 lg:bg-[var(--bg-panel)]/90 lg:backdrop-blur-xl"
       >
         {/* 1. CUT */}
         <button
@@ -436,7 +458,7 @@ export function EditingToolbar({
               style={{ willChange: "transform, opacity" }}
               className="absolute top-full left-1/2 z-50 w-[min(calc(100vw-2rem),268px)] -translate-x-1/2 pt-3"
             >
-              <div className="overflow-hidden rounded-3xl border border-white/14 bg-[#141724]/95 p-4 text-white shadow-[0_26px_64px_-16px_rgba(3,5,14,0.9)] backdrop-blur-2xl">
+              <div className="overflow-hidden rounded-3xl border border-white/14 bg-[#0B0F19]/96 p-4 text-white shadow-[0_26px_64px_-16px_rgba(3,5,14,0.9)] lg:bg-[#141724]/95 lg:backdrop-blur-2xl">
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <p className="font-display text-xs font-bold tracking-tight text-white">
@@ -462,11 +484,11 @@ export function EditingToolbar({
                   <div
                     ref={wheelRef}
                     onPointerMove={(event) => {
-                      updateColorFromPoint(event.clientX, event.clientY);
+                      scheduleColorPoint(event.clientX, event.clientY);
                     }}
                     onPointerDown={(event) => {
                       event.currentTarget.setPointerCapture(event.pointerId);
-                      updateColorFromPoint(event.clientX, event.clientY);
+                      scheduleColorPoint(event.clientX, event.clientY);
                     }}
                     className="relative flex h-44 w-44 cursor-crosshair touch-none items-center justify-center rounded-full border-2 border-white/18 shadow-[inset_0_0_24px_rgba(0,0,0,0.42)]"
                     style={{
@@ -557,6 +579,27 @@ export function EditingToolOverlays({
   onCloseScale: () => void;
 }) {
   const scalePopoverRef = useRef<HTMLDivElement>(null);
+  const scaleRafRef = useRef<number | null>(null);
+  const pendingScaleRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (scaleRafRef.current !== null) {
+        window.cancelAnimationFrame(scaleRafRef.current);
+      }
+    };
+  }, []);
+
+  const scheduleScaleChange = (nextValue: number) => {
+    pendingScaleRef.current = nextValue;
+    if (scaleRafRef.current !== null) return;
+    scaleRafRef.current = window.requestAnimationFrame(() => {
+      scaleRafRef.current = null;
+      if (pendingScaleRef.current !== null) {
+        onChangeScale(pendingScaleRef.current);
+      }
+    });
+  };
 
   useEffect(() => {
     if (!isScaleOpen) return;
@@ -580,7 +623,7 @@ export function EditingToolOverlays({
       }
     };
 
-    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
@@ -609,7 +652,7 @@ export function EditingToolOverlays({
               paddingLeft: "max(0.875rem, env(safe-area-inset-left))",
               paddingRight: "max(0.875rem, env(safe-area-inset-right))",
             }}
-            className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#05070C]/75 backdrop-blur-md"
+            className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#07090F]/92 lg:bg-[#05070C]/75 lg:backdrop-blur-md"
           >
             <motion.div
               initial={{ scale: 1.3, opacity: 0.25 }}
@@ -914,7 +957,7 @@ export function EditingToolOverlays({
               paddingLeft: "max(1rem, env(safe-area-inset-left))",
               paddingRight: "max(1rem, env(safe-area-inset-right))",
             }}
-            className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#05070C]/75 py-6 backdrop-blur-md"
+            className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#07090F]/92 py-6 lg:bg-[#05070C]/75 lg:backdrop-blur-md"
           >
             <div className="flex w-full max-w-5xl flex-col items-center gap-3.5 md:grid md:grid-cols-[174px_minmax(0,1fr)_174px] md:items-center md:gap-4 lg:grid-cols-[224px_minmax(0,1fr)_224px] lg:gap-6">
               {/* MOBILE TOP COMPACT ROW (VOZ & TRILHA) */}
@@ -1092,7 +1135,7 @@ export function EditingToolOverlays({
               maxWidth:
                 "calc(100vw - 2rem - env(safe-area-inset-left) - env(safe-area-inset-right))",
             }}
-            className="fixed top-20 left-1/2 z-50 w-[360px] -translate-x-1/2 overflow-hidden rounded-3xl border border-[#3B82F6]/45 bg-[#12151E]/95 p-4 text-white shadow-[0_28px_70px_-14px_rgba(3,5,14,0.92)] backdrop-blur-2xl"
+            className="fixed top-20 left-1/2 z-50 w-[360px] -translate-x-1/2 overflow-hidden rounded-3xl border border-[#3B82F6]/45 bg-[#0B0F19]/96 p-4 text-white shadow-[0_28px_70px_-14px_rgba(3,5,14,0.92)] lg:bg-[#12151E]/95 lg:backdrop-blur-2xl"
           >
             {/* Header Row */}
             <div className="flex items-center justify-between gap-2">
@@ -1116,13 +1159,16 @@ export function EditingToolOverlays({
               </button>
             </div>
 
-            {/* Interactive Slider (60% -> 115%, Touch & Mouse Friendly) */}
+            {/* Interactive Slider (60% -> 115%, GPU scaleX/translate3d + rAF Touch Smoothness) */}
             <div className="mt-4">
               <div className="relative flex h-9 items-center">
                 <div className="h-2 w-full overflow-hidden rounded-full bg-white/12">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#60A5FA] to-[#3B82F6]"
-                    style={{ width: `${sliderPercent}%` }}
+                    className="h-full w-full rounded-full bg-gradient-to-r from-[#60A5FA] to-[#3B82F6]"
+                    style={{
+                      transform: `scaleX(${Math.max(0.01, sliderPercent / 100)})`,
+                      transformOrigin: "left center",
+                    }}
                   />
                 </div>
 
@@ -1133,12 +1179,16 @@ export function EditingToolOverlays({
                   style={{ left: `${((100 - 60) / (115 - 60)) * 100}%` }}
                 />
 
-                {/* Visual Thumb */}
-                <span
+                {/* Visual Thumb (Pure GPU translate3d) */}
+                <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute h-5 w-5 -translate-x-1/2 rounded-full border-2 border-white bg-[#3B82F6] shadow-[0_0_14px_rgba(59,130,246,0.9)]"
-                  style={{ left: `${sliderPercent}%` }}
-                />
+                  className="pointer-events-none absolute inset-0 flex items-center"
+                  style={{
+                    transform: `translate3d(${sliderPercent}%, 0, 0)`,
+                  }}
+                >
+                  <span className="h-5 w-5 -translate-x-1/2 rounded-full border-2 border-white bg-[#3B82F6] shadow-[0_0_14px_rgba(59,130,246,0.9)]" />
+                </div>
 
                 <input
                   type="range"
@@ -1147,7 +1197,9 @@ export function EditingToolOverlays({
                   max={115}
                   step={1}
                   value={scaleValue}
-                  onChange={(event) => onChangeScale(Number(event.target.value))}
+                  onChange={(event) =>
+                    scheduleScaleChange(Number(event.target.value))
+                  }
                   className="absolute inset-0 z-20 h-full w-full cursor-ew-resize touch-none opacity-0"
                 />
               </div>

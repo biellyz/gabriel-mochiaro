@@ -435,27 +435,31 @@ export function PortfolioShell() {
         )}
       </AnimatePresence>
 
-      {/* Subtle Ambient Background Glows (Dynamically Tinted via --studio-tint) */}
+      {/* Subtle Ambient Background Glows (Zero-cost static gradient on mobile; dynamic blur blobs on desktop lg+) */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 overflow-hidden"
+        style={{
+          background:
+            "radial-gradient(circle at 25% 8%, rgba(147,197,253,0.08), transparent 45%), radial-gradient(circle at 82% 38%, rgba(196,181,253,0.07), transparent 46%)",
+        }}
       >
         <div
-          className="absolute -top-40 left-1/4 h-[420px] w-[420px] rounded-full blur-[130px] transition-colors duration-400"
+          className="absolute -top-40 left-1/4 hidden h-[420px] w-[420px] rounded-full blur-[130px] transition-colors duration-400 lg:block"
           style={{
             backgroundColor: colorGrade ? colorGrade.color : "#93C5FD",
             opacity: colorGrade ? 0.18 : 0.1,
           }}
         />
         <div
-          className="absolute top-1/3 -right-32 h-[380px] w-[380px] rounded-full blur-[130px] transition-colors duration-400"
+          className="absolute top-1/3 -right-32 hidden h-[380px] w-[380px] rounded-full blur-[130px] transition-colors duration-400 lg:block"
           style={{
             backgroundColor: colorGrade ? colorGrade.color : "#C4B5FD",
             opacity: colorGrade ? 0.15 : 0.1,
           }}
         />
         <div
-          className="absolute bottom-1/4 -left-32 h-[360px] w-[360px] rounded-full blur-[130px] transition-colors duration-400"
+          className="absolute bottom-1/4 -left-32 hidden h-[360px] w-[360px] rounded-full blur-[130px] transition-colors duration-400 lg:block"
           style={{
             backgroundColor: colorGrade ? colorGrade.color : "#6EE7B7",
             opacity: colorGrade ? 0.12 : 0.08,
@@ -499,7 +503,8 @@ export function PortfolioShell() {
         transition={SCALE_SPRING}
         style={{
           transformOrigin: "center top",
-          willChange: "transform, opacity",
+          willChange:
+            isScaleOpen || scaleValue !== 100 ? "transform" : undefined,
         }}
         className={`relative z-10 ${
           showTransformVisuals ? "bg-[var(--bg-canvas)] shadow-[0_36px_90px_rgba(0,0,0,0.75)]" : ""
@@ -525,7 +530,6 @@ export function PortfolioShell() {
           initial={{ opacity: 0 }}
           animate={bootDone ? { opacity: 1 } : { opacity: 0.65 }}
           transition={{ duration: 0.6, ease: SMOOTH_EASE }}
-          style={{ willChange: "opacity" }}
         >
           <HeroSection
             onOpenVideo={setActiveMedia}
@@ -559,7 +563,6 @@ export function PortfolioShell() {
               delay: 0.08,
               ease: SMOOTH_EASE,
             }}
-            style={{ willChange: "transform, opacity" }}
           >
             <InteractiveTimeline
               projects={timelineProjects}
@@ -578,7 +581,6 @@ export function PortfolioShell() {
               delay: 0.14,
               ease: SMOOTH_EASE,
             }}
-            style={{ willChange: "transform, opacity" }}
           >
             <ProjectsSection
               activeFilter={activeFilter}

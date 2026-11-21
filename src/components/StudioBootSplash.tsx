@@ -101,25 +101,24 @@ export function StudioBootSplash({ onComplete }: StudioBootSplashProps) {
           transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-between overflow-hidden bg-[#0D0F17] px-5 py-8 text-white"
         >
-          {/* Soft Pastel Ambient Blobs */}
+          {/* Soft Pastel Ambient Glow (Zero-cost radial gradient on mobile; animated blobs on desktop) */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 overflow-hidden"
+            style={{
+              background:
+                "radial-gradient(circle at 20% 18%, rgba(147,197,253,0.14), transparent 46%), radial-gradient(circle at 82% 84%, rgba(196,181,253,0.14), transparent 48%)",
+            }}
           >
             <motion.div
               animate={{ x: ["-6%", "8%", "-4%"], y: ["-4%", "6%", "-4%"] }}
               transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-28 -left-24 h-[420px] w-[420px] rounded-full bg-[#93C5FD]/18 blur-[120px]"
+              className="absolute -top-28 -left-24 hidden h-[420px] w-[420px] rounded-full bg-[#93C5FD]/18 blur-[120px] lg:block"
             />
             <motion.div
               animate={{ x: ["8%", "-6%", "6%"], y: ["6%", "-8%", "4%"] }}
               transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-24 -bottom-28 h-[440px] w-[440px] rounded-full bg-[#C4B5FD]/18 blur-[125px]"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.12, 1] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-1/2 left-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6EE7B7]/10 blur-[110px]"
+              className="absolute -right-24 -bottom-28 hidden h-[440px] w-[440px] rounded-full bg-[#C4B5FD]/18 blur-[125px] lg:block"
             />
           </div>
 
@@ -131,7 +130,7 @@ export function StudioBootSplash({ onComplete }: StudioBootSplashProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 1.04 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 w-full max-w-[460px] rounded-[32px] border border-white/10 bg-[#1B1D2B]/90 p-7 text-center shadow-[0_32px_90px_rgba(7,8,18,0.7)] backdrop-blur-2xl sm:p-9"
+            className="relative z-10 w-full max-w-[460px] rounded-[32px] border border-white/10 bg-[#141724]/96 p-7 text-center shadow-[0_32px_90px_rgba(7,8,18,0.7)] sm:p-9 lg:bg-[#1B1D2B]/90 lg:backdrop-blur-2xl"
           >
             {/* Soft Cute GM Squircle Logo */}
             <div className="relative mx-auto flex w-fit items-center justify-center">
@@ -174,16 +173,17 @@ export function StudioBootSplash({ onComplete }: StudioBootSplashProps) {
               Editor de Vídeo &amp; Publicitário
             </motion.p>
 
-            {/* Cute Pastel Mini-Timeline Visualizer */}
-            <div className="mt-6 rounded-2xl border border-white/[0.08] bg-[#13141E]/85 p-3.5">
+            {/* Cute Pastel Mini-Timeline Visualizer (Pure GPU transform) */}
+            <div className="mt-6 rounded-2xl border border-white/[0.08] bg-[#13141E]/90 p-3.5">
               <div className="relative space-y-2 overflow-hidden">
                 <motion.div
                   aria-hidden="true"
-                  initial={{ left: "3%" }}
-                  animate={{ left: `${Math.min(97, Math.max(4, progress))}%` }}
-                  transition={{ duration: 0.2, ease: "linear" }}
-                  className="pointer-events-none absolute inset-y-0 z-10 w-[2px] rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.85)]"
-                />
+                  animate={{ x: `${Math.min(97, Math.max(4, progress))}%` }}
+                  transition={{ duration: 0.16, ease: "linear" }}
+                  className="pointer-events-none absolute inset-0 z-10"
+                >
+                  <span className="block h-full w-[2px] rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                </motion.div>
 
                 {/* Pastel Rounded Clips */}
                 <div className="flex items-center gap-1.5">
@@ -228,13 +228,14 @@ export function StudioBootSplash({ onComplete }: StudioBootSplashProps) {
               </div>
             </div>
 
-            {/* Smooth Progress Pill */}
+            {/* Smooth Progress Pill (Pure GPU scaleX) */}
             <div className="mt-5">
               <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                 <motion.div
-                  animate={{ width: `${progress}%` }}
+                  animate={{ scaleX: Math.max(0.01, progress / 100) }}
                   transition={{ duration: 0.12, ease: "linear" }}
-                  className="h-full rounded-full bg-gradient-to-r from-[#93C5FD] via-[#C4B5FD] to-[#6EE7B7]"
+                  style={{ transformOrigin: "left center" }}
+                  className="h-full w-full rounded-full bg-gradient-to-r from-[#93C5FD] via-[#C4B5FD] to-[#6EE7B7]"
                 />
               </div>
 
@@ -264,7 +265,7 @@ export function StudioBootSplash({ onComplete }: StudioBootSplashProps) {
             <button
               type="button"
               onClick={handleSkip}
-              className="min-h-[40px] cursor-pointer rounded-full border border-white/15 bg-white/[0.06] px-5 py-2 text-xs font-medium text-[#D6DCF0] backdrop-blur-md transition-colors hover:border-[#C4B5FD]/60 hover:bg-white/[0.12] hover:text-white"
+              className="min-h-[40px] cursor-pointer rounded-full border border-white/15 bg-[#141724]/92 px-5 py-2 text-xs font-medium text-[#D6DCF0] transition-colors hover:border-[#C4B5FD]/60 hover:bg-white/[0.12] hover:text-white lg:bg-white/[0.06] lg:backdrop-blur-md"
             >
               Pular abertura
             </button>

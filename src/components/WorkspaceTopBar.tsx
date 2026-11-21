@@ -96,7 +96,7 @@ export function WorkspaceTopBar({
   return (
     <>
       <header className="safe-px sticky top-0 z-40 max-w-full pt-3">
-        <div className="mx-auto max-w-[1280px] rounded-full border border-[var(--border-panel)] bg-[var(--bg-panel)]/88 shadow-[var(--shadow-soft)] backdrop-blur-xl">
+        <div className="mx-auto max-w-[1280px] rounded-full border border-[var(--border-panel)] bg-[#0B0F19]/95 shadow-[var(--shadow-soft)] lg:bg-[var(--bg-panel)]/88 lg:backdrop-blur-xl">
           <div className="flex h-14 items-center justify-between gap-2 px-2.5 sm:h-15 sm:gap-3 sm:px-4">
             {/* Left: Cute GM Squircle + Name */}
             <a
@@ -232,7 +232,7 @@ export function WorkspaceTopBar({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.2 }}
-              className="mx-auto mt-2.5 max-w-[1280px] overflow-hidden rounded-3xl border border-[var(--border-panel)] bg-[var(--bg-panel)]/95 p-4 shadow-[var(--shadow-soft)] backdrop-blur-xl sm:p-5"
+              className="mx-auto mt-2.5 max-w-[1280px] overflow-hidden rounded-3xl border border-[var(--border-panel)] bg-[#0B0F19]/96 p-4 shadow-[var(--shadow-soft)] sm:p-5 lg:bg-[var(--bg-panel)]/95 lg:backdrop-blur-xl"
             >
               <div className="flex items-center gap-2.5 rounded-full border border-[var(--border-panel)] bg-[var(--bg-panel-alt)] px-4 py-2.5">
                 <Search className="h-4 w-4 shrink-0 text-[var(--accent)]" />
@@ -329,7 +329,7 @@ export function WorkspaceTopBar({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileDrawerOpen(false)}
-            className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-50 bg-[#07090F]/82 lg:hidden"
           >
             <motion.aside
               initial={{ x: "-100%" }}
