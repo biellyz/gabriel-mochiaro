@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+:root,
+[data-theme="dark"] {
+  /* Cinema Acolhedor (Crepúsculo Cinematográfico + Acentos Suaves) */
+  --bg-canvas: #0d0f17;
+  --bg-panel: #141724;
+  --bg-panel-alt: #1a1e2e;
+  --bg-surface: #202538;
+  --border-panel: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.055);
+  --text-primary: #f5f7fc;
+  --text-secondary: #b4bcd0;
+  --text-muted: #848da6;
+  --tab-active-bg: #6e94ff;
+  --accent: #6e94ff;
+  --accent-soft: rgba(110, 148, 255, 0.16);
+  --lavender-soft: rgba(196, 181, 253, 0.16);
+  --studio-accent: #6e94ff;
+  --studio-tint: #6e94ff;
+  --shadow-soft: 0 24px 56px -26px rgba(3, 5, 14, 0.8);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-plus-jakarta-sans);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-canvas);
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-plus-jakarta-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: clip;
+  max-width: 100%;
+  transition: background-color 400ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.safe-px {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+@media (min-width: 640px) {
+  .safe-px {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
+}
+
+::selection {
+  background-color: rgba(196, 181, 253, 0.3);
+  color: var(--text-primary);
+}
+
+/* Soft rounded scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(132, 141, 166, 0.34);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(110, 148, 255, 0.72);
+}
+
+.filmstrip-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(132, 141, 166, 0.34) transparent;
+}
+
+/* ============================================================================
+   GPU-ONLY 60FPS AUDIO BEAT SYNC (120 BPM = 0.5s cycle)
+   Strictly animates transform: scale3d — zero box-shadow/layout animation!
+   ============================================================================ */
+@keyframes audioBeat120 {
+  0%,
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+  28% {
+    transform: scale3d(1.02, 1.02, 1);
+  }
+  60% {
+    transform: scale3d(0.996, 0.996, 1);
+  }
+}
+
+.audio-beat-sync .audio-pulse-target,
+.audio-beat-sync button[data-primary-cta="true"] {
+  will-change: transform;
+  animation: audioBeat120 0.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Dynamic smooth transition for Color Grading accent & tint */
+.studio-accent-bg {
+  background-color: var(--studio-accent);
+  transition: background-color 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audio-beat-sync .audio-pulse-target,
+  .audio-beat-sync button[data-primary-cta="true"] {
+    animation: none;
+  }
+}
